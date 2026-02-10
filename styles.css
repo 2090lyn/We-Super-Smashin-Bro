@@ -1,0 +1,183 @@
+* {
+    box-sizing: border-box;
+}
+
+html,
+body {
+    height: 100%;
+}
+
+body {
+    margin: 0;
+    background: radial-gradient(circle at 20% 0%, #2b1b3f 0%, #0b0b10 55%, #050509 100%);
+    font-family: ui-rounded, system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+    overflow: hidden;
+}
+
+.game {
+    position: relative;
+    width: 100vw;
+    height: 100vh;
+}
+
+canvas {
+    display: block;
+    width: 100%;
+    height: 100%;
+}
+
+.hud {
+    position: absolute;
+    top: 16px;
+    left: 50%;
+    transform: translateX(-50%);
+    width: min(1200px, calc(100% - 32px));
+    display: flex;
+    align-items: center;
+    gap: 0; /* health bars should touch the heart */
+    pointer-events: none;
+}
+
+.center-heart {
+    position: relative;
+    width: 72px;
+    height: 72px;
+    flex: 0 0 auto;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    z-index: 3;
+    background: linear-gradient(180deg, rgba(255, 255, 255, 0.22) 0%, rgba(255, 255, 255, 0.08) 100%);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    box-shadow:
+        0 14px 34px rgba(0, 0, 0, 0.5),
+        inset 0 2px 0 rgba(255, 255, 255, 0.25);
+    backdrop-filter: blur(10px);
+}
+
+.center-heart__img {
+    width: 56px;
+    height: 56px;
+    display: block;
+    object-fit: contain;
+    image-rendering: pixelated;
+    filter:
+        drop-shadow(0 10px 16px rgba(255, 47, 117, 0.18))
+        drop-shadow(0 2px 0 rgba(0, 0, 0, 0.35));
+}
+
+.center-heart::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    box-shadow: 0 0 0 8px rgba(255, 47, 117, 0.08);
+    opacity: 0.8;
+    pointer-events: none;
+    will-change: transform, opacity;
+    animation: heartPulse 1.15s ease-in-out infinite;
+}
+
+.health {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.health-p2 {
+    align-items: flex-end;
+}
+
+.health_tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    width: fit-content;
+    padding: 6px 10px;
+    border-radius: 999px;
+    color: rgba(255, 255, 255, 0.92);
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.16);
+    box-shadow: 0 10px 24px rgba(0, 0, 0, 0.35);
+    font-weight: 800;
+    font-size: 12px;
+    letter-spacing: 0.06em;
+    text-transform: uppercase;
+    backdrop-filter: blur(10px);
+}
+
+.health_frame {
+    position: relative;
+    display: flex;
+    width: 100%;
+    height: 24px;
+    border-radius: 999px;
+    background: rgba(255, 255, 255, 0.08);
+    border: 1px solid rgba(255, 255, 255, 0.18);
+    overflow: hidden;
+    box-shadow:
+        0 14px 30px rgba(0, 0, 0, 0.45),
+        inset 0 2px 0 rgba(255, 255, 255, 0.22);
+    z-index: 1;
+}
+
+.health-p1 .health_frame {
+    justify-content: flex-end;
+    border-top-right-radius: 0;
+    border-bottom-right-radius: 0;
+    border-right: none;
+}
+
+.health-p2 .health_frame {
+    justify-content: flex-start;
+    border-top-left-radius: 0;
+    border-bottom-left-radius: 0;
+    border-left: none;
+}
+
+.health_frame::after {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background:
+        radial-gradient(circle at 12px 12px, rgba(255, 255, 255, 0.25) 2px, transparent 3px) 0 0 / 18px 18px;
+    opacity: 0.5;
+    pointer-events: none;
+}
+
+.health_fill {
+    height: 100%;
+    width: 100%;
+    border-radius: inherit;
+    transition: width 180ms ease;
+    position: relative;
+    z-index: 1;
+}
+
+.health-p1 .health_fill {
+    background: linear-gradient(90deg, #ff79c6 0%, #ff4d9a 55%, #ff2f75 100%);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.14) inset,
+        0 10px 20px rgba(255, 79, 165, 0.25);
+}
+
+.health-p2 .health_fill {
+    background: linear-gradient(90deg, #7dd3ff 0%, #4f9cff 55%, #2b74ff 100%);
+    box-shadow:
+        0 0 0 1px rgba(255, 255, 255, 0.14) inset,
+        0 10px 20px rgba(79, 149, 255, 0.22);
+}
+
+@keyframes heartPulse {
+    0%,
+    100% {
+        transform: scale(1);
+        opacity: 0.55;
+    }
+    50% {
+        transform: scale(1.18);
+        opacity: 0.9;
+    }
+}

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html lang="en">
+	    <head>
+	        <meta charset="utf-8">
+            <meta name="viewport" content="width=device-width, initial-scale=1.0">
+	        <title> Heart Strike </title>
+	        <link href="styles.css" rel="stylesheet">
+	    </head>
+
+<body>
+    <div class="game">
+	        <div class="hud">
+	            <!-- Player 1 Health -->
+	            <div class="health health-p1">
+	                <div class="health_frame">
+	                    <div id="player1-health" class="health_fill" style="width: 100%"></div>
+	                </div>
+	                <div class="health_tag">P1 ❤</div>
+	            </div>
+	
+	            <!-- Center Heart (no timer) -->
+	            <div class="center-heart">
+	                <img class="center-heart__img" src="./imgs/heart.png" alt="Heart" draggable="false">
+	            </div>
+	
+	            <!-- Player 2 Health -->
+	            <div class="health health-p2">
+	                <div class="health_frame">
+	                    <div id="player2-health" class="health_fill" style="width: 100%"></div>
+	                </div>
+	                <div class="health_tag">❤ P2</div>
+	            </div>
+	        </div>
+        <canvas></canvas>
+    </div>
+    <script src="index.js"></script>
+</body>
+
+</html>
