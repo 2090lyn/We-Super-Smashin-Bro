@@ -69,12 +69,12 @@ class Sprite {
         attackBox = { offset: { x: 0, y: 0 }, width: 100, height: 50 }
     }) {
         super({
-        position,
-        imageSrc,
-        imgSrc,
-        scale,
-        framesMax,
-        offset
+            position,
+            imageSrc,
+            imgSrc,
+            scale,
+            framesMax,
+            offset
         })
 
         this.velocity = velocity
@@ -92,8 +92,8 @@ class Sprite {
         height: attackBox.height ?? 50
         }
         this.color = color
-    this.isAttacking
-    this.attackTimeout
+        this.isAttacking
+        this.attackTimeout
         this.health = 100
         this.framesCurrent = 0
         this.framesElapsed = 0

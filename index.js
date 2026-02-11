@@ -60,7 +60,7 @@ const background = new Sprite({
 
 const player1 = new Fighter ({
     position: {
-        x: 0,
+        x: 150,
         y: 0
     },
     velocity: {
@@ -70,12 +70,23 @@ const player1 = new Fighter ({
     offset: {
         x: 0,
         y: 0
+    },
+    attackBox: {
+        offset: { x: 0, y: 0 },
+        matchSprite: true
+    },
+    imgSrc: "./imgs/Cathlyn/CathlynRight.png",
+    framesMax: 1,
+    scale: 0.8,
+    offset: {
+        x: 200,
+        y: 230
     }
 })
 
 const player2 = new Fighter ({
     position: {
-        x: 400,
+        x: 1300,
         y: 100
     },
     velocity: {
@@ -84,8 +95,19 @@ const player2 = new Fighter ({
     },
     color: 'blue',
     offset: {
-        x: -50,
+        x: 0,
         y: 0
+    },
+    attackBox: {
+        offset: { x: 0, y: 0 },
+        matchSprite: true
+    },
+    imgSrc: "./imgs/Noah/NoahLeft.png",
+    framesMax: 1,
+    scale: 0.8,
+    offset: {
+        x: 110,
+        y: 220
     }
 })
 
@@ -341,11 +363,13 @@ window.addEventListener('keydown', (event) =>  {
         // player 1
         case 'd': 
             controlsLegendState.p1HasMoved = true
+            player1.facing = 1
             keys.d.pressed = true;
             player1.lastKey = 'd'
             break;
         case 'a': 
             controlsLegendState.p1HasMoved = true
+            player1.facing = -1
             keys.a.pressed = true;
             player1.lastKey = 'a'
             break;
@@ -360,11 +384,13 @@ window.addEventListener('keydown', (event) =>  {
         // player 2
         case 'ArrowRight': 
             controlsLegendState.p2HasMoved = true
+            player2.facing = 1
             keys.ArrowRight.pressed = true;
             player2.lastKey = 'ArrowRight'
             break;
         case 'ArrowLeft': 
             controlsLegendState.p2HasMoved = true
+            player2.facing = -1
             keys.ArrowLeft.pressed = true;
             player2.lastKey = 'ArrowLeft'
             break;
