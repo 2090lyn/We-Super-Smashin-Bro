@@ -81,6 +81,9 @@ const player1 = new Fighter ({
     offset: {
         x: 200,
         y: 230
+    },
+    sprites: {
+        
     }
 })
 
