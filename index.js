@@ -58,59 +58,98 @@ const background = new Sprite({
     imgSrc: './imgs/fighting arena.png'
 })
 
-const player1 = new Fighter ({
-    position: {
-        x: 150,
-        y: 0
-    },
-    velocity: {
-        x: 0,
-        y: 0
-    },
-    offset: {
-        x: 0,
-        y: 0
-    },
-    attackBox: {
-        offset: { x: 0, y: 0 },
-        matchSprite: true
-    },
-    imgSrc: "./imgs/Cathlyn/CathlynRight.png",
+const player1 = new Fighter({
+    position: { x: 170, y: 0 },
+    velocity: { x: 0, y: 0 },
+    imgSrc: './imgs/Cathlyn/CathlynRight.png',
     framesMax: 1,
-    scale: 0.8,
-    offset: {
-        x: 200,
-        y: 230
+    attackBox: {
+        offset: { x: 8, y: -10 },
+        width: 80,
+        height: 12
     },
+    scale: 0.8,
+    offset: { x: 200, y: 230 },
     sprites: {
-        
+        idle: { imageSrc: './imgs/Cathlyn/CathlynRight.png', framesMax: 1 },
+        idleLeft: { 
+            imageSrc: './imgs/Cathlyn/CathlynLeft.png', 
+            framesMax: 1
+        },
+        run: { 
+            imageSrc: './imgs/Cathlyn/CathlynWalkRight.png', 
+            framesMax: 1,
+        },
+        runLeft: { 
+            imageSrc: './imgs/Cathlyn/CathlynWalkLeft.png', 
+            framesMax: 1
+        },
+        jump: { 
+            imageSrc: './imgs/Cathlyn/CathlynJumpRight.png', 
+            framesMax: 1
+        },
+        jumpLeft: { 
+            imageSrc: './imgs/Cathlyn/CathlynJumpLeft.png', 
+            framesMax: 1
+        },
+        fall: { 
+            imageSrc: './imgs/Cathlyn/CathlynJumpRight.png', 
+            framesMax: 1
+        },
+        fallLeft: { 
+            imageSrc: './imgs/Cathlyn/CathlynJumpLeft.png', 
+            framesMax: 1
+        },
+        attack1: { 
+            imageSrc: './imgs/Cathlyn/CathlynRight.png', 
+            framesMax: 1 
+        },
+        attack1Left: { 
+            imageSrc: './imgs/Cathlyn/CathlynLeft.png', 
+            framesMax: 1 
+        },
+        takeHit: { 
+            imageSrc: './imgs/Cathlyn/CathlynLeft.png', 
+            framesMax: 1 
+        },
+        takeHitRight: { 
+            imageSrc: './imgs/Cathlyn/CathlynRight.png', 
+            framesMax: 1 
+        },
+        death: { 
+            imageSrc: './imgs/Cathlyn/CathlynRight.png', 
+            framesMax: 1 
+        }
     }
 })
 
-const player2 = new Fighter ({
-    position: {
-        x: 1300,
-        y: 100
-    },
-    velocity: {
-        x: 0,
-        y: 0
-    },
-    color: 'blue',
-    offset: {
-        x: 0,
-        y: 0
-    },
+const player2 = new Fighter({
+    position: { x: 1200, y: 100 },
+    velocity: { x: 0, y: 0 },
+    facing: -1,
     attackBox: {
-        offset: { x: 0, y: 0 },
-        matchSprite: true
+        offset: { x: 8, y: -10 },
+        width: 80,
+        height: 12
     },
-    imgSrc: "./imgs/Noah/NoahLeft.png",
+    imgSrc: './imgs/Noah/NoahLeft.png',
     framesMax: 1,
     scale: 0.8,
-    offset: {
-        x: 110,
-        y: 220
+    offset: { x: 110, y: 220 },
+    sprites: {
+        idle: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 },
+        idleRight: { imageSrc: './imgs/Noah/NoahRight.png', framesMax: 1 },
+        run: { imageSrc: './imgs/Noah/NoahWalkLeft.png', framesMax: 1 },
+        runRight: { imageSrc: './imgs/Noah/NoahWalkRight.png', framesMax: 1 },
+        jump: { imageSrc: './imgs/Noah/NoahJumpLeft.png', framesMax: 1 },
+        jumpRight: { imageSrc: './imgs/Noah/NoahJumpRight.png', framesMax: 1 },
+        fall: { imageSrc: './imgs/Noah/NoahJumpLeft.png', framesMax: 1 },
+        fallRight: { imageSrc: './imgs/Noah/NoahJumpRight.png', framesMax: 1 },
+        attack1: { imageSrc: './imgs/Noah/NoahAttackLeft.png', framesMax: 1 },
+        attack1Right: { imageSrc: './imgs/Noah/NoahAttackRight.png', framesMax: 1 },
+        takeHit: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 },
+        takeHitRight: { imageSrc: './imgs/Noah/NoahRight.png', framesMax: 1 },
+        death: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 }
     }
 })
 
@@ -330,6 +369,31 @@ function animate() {
     } else if (keys.ArrowRight.pressed && player2.lastKey == 'ArrowRight') {
         player2.velocity.x = 5;
     }
+
+    if (keys.a.pressed && !keys.d.pressed) {
+        player1.facing = -1
+    } else if (keys.d.pressed && !keys.a.pressed) {
+        player1.facing = 1
+    }
+    if (keys.ArrowLeft.pressed && !keys.ArrowRight.pressed) {
+        player2.facing = -1
+    } else if (keys.ArrowRight.pressed && !keys.ArrowLeft.pressed) {
+        player2.facing = 1
+    }
+
+    const updateState = (fighter) => {
+        if (fighter.velocity.y < -0.1) {
+            fighter.switchSprite('jump')
+        } else if (fighter.velocity.y > 0.1) {
+            fighter.switchSprite('fall')
+        } else if (fighter.velocity.x !== 0) {
+            fighter.switchSprite('run')
+        } else {
+            fighter.switchSprite('idle')
+        }
+    }
+    updateState(player1)
+    updateState(player2)
 
     // detect for collision
     if (rectangularCollision({
