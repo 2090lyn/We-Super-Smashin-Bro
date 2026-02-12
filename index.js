@@ -35,6 +35,7 @@ window.addEventListener('resize', resizeStage)
 resizeStage()
 
 const gravity = 0.7
+window.DEBUG_HITBOXES = true
 
 const player1HealthFill = document.querySelector('#player1-health')
 const player2HealthFill = document.querySelector('#player2-health')
@@ -59,17 +60,26 @@ const background = new Sprite({
 })
 
 const player1 = new Fighter({
-    position: { x: 170, y: 0 },
+    hitbox: {
+        offset: { x: -20, y: -100 }, // move the red box
+        width: 250,
+        height: 360
+    },
+
+    position: { x: 100, y: 0 },
     velocity: { x: 0, y: 0 },
     imgSrc: './imgs/Cathlyn/CathlynRight.png',
     framesMax: 1,
     attackBox: {
-        offset: { x: 8, y: -10 },
-        width: 80,
+        offset: { 
+            left: {x: -20, y: -150 },
+            right: {x: -70, y: -150 },
+        },
+        width: 150,
         height: 12
     },
     scale: 0.8,
-    offset: { x: 200, y: 230 },
+    offset: { x: 100, y: 130 },
     sprites: {
         idle: { imageSrc: './imgs/Cathlyn/CathlynRight.png', framesMax: 1 },
         idleLeft: { 
@@ -120,22 +130,32 @@ const player1 = new Fighter({
             imageSrc: './imgs/Cathlyn/CathlynRight.png', 
             framesMax: 1 
         }
-    }
+    },
+    attackDuration: 350,
+    attackCooldown: 500
 })
 
 const player2 = new Fighter({
-    position: { x: 1200, y: 100 },
+    hitbox: {
+        offset: { x: 250, y: -140 }, // move the red box
+        width: 250,
+        height: 360
+    },
+    position: { x: 1300, y: 100 },
     velocity: { x: 0, y: 0 },
     facing: -1,
     attackBox: {
-        offset: { x: 8, y: -10 },
-        width: 80,
+        offset: { 
+            left: {x: -310, y: -180 },
+            right: {x: 200, y: -180 }
+        },
+        width: 150,
         height: 12
     },
     imgSrc: './imgs/Noah/NoahLeft.png',
     framesMax: 1,
     scale: 0.8,
-    offset: { x: 110, y: 220 },
+    offset: { x: -100, y: 160 },
     sprites: {
         idle: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 },
         idleRight: { imageSrc: './imgs/Noah/NoahRight.png', framesMax: 1 },
@@ -150,7 +170,9 @@ const player2 = new Fighter({
         takeHit: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 },
         takeHitRight: { imageSrc: './imgs/Noah/NoahRight.png', framesMax: 1 },
         death: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 }
-    }
+    },
+    attackDuration: 350,
+    attackCooldown: 500
 })
 
 syncHealthUI()
@@ -175,12 +197,18 @@ const controlsLegendState = {
     p2HasMoved: false
 }
 
+function getBodyHitbox(rect) {
+    if (rect?.hitbox) return rect.hitbox
+    return { position: rect.position, width: rect.width, height: rect.height }
+}
+
 function rectangularCollision({ rectangle1, rectangle2 }) {
+    const target = getBodyHitbox(rectangle2)
     return (
-        rectangle1.attackBox.position.x + rectangle1.attackBox.width >= rectangle2.position.x && 
-        rectangle1.attackBox.position.x <= rectangle2.position.x + rectangle2.width &&
-        rectangle1.attackBox.position.y + rectangle1.attackBox.height >= rectangle2.position.y &&
-        rectangle1.attackBox.position.y <= rectangle2.position.y + rectangle2.height
+        rectangle1.attackBox.position.x + rectangle1.attackBox.width >= target.position.x && 
+        rectangle1.attackBox.position.x <= target.position.x + target.width &&
+        rectangle1.attackBox.position.y + rectangle1.attackBox.height >= target.position.y &&
+        rectangle1.attackBox.position.y <= target.position.y + target.height
     )
 }
 
@@ -357,39 +385,51 @@ function animate() {
     player2.velocity.x = 0;
 
     // player1 movementaa
-    if (keys.a.pressed && player1.lastKey == 'a') {
-        player1.velocity.x = -5;
-    } else if (keys.d.pressed && player1.lastKey == 'd') {
-        player1.velocity.x = 5;
+    if (!player1.isMovementLocked()) {
+        if (keys.a.pressed && player1.lastKey == 'a') {
+            player1.velocity.x = -5;
+        } else if (keys.d.pressed && player1.lastKey == 'd') {
+            player1.velocity.x = 5;
+        }
     }
 
     // player2 movement
-    if (keys.ArrowLeft.pressed && player2.lastKey == 'ArrowLeft') {
-        player2.velocity.x = -5;
-    } else if (keys.ArrowRight.pressed && player2.lastKey == 'ArrowRight') {
-        player2.velocity.x = 5;
+    if (!player2.isMovementLocked()) {
+        if (keys.ArrowLeft.pressed && player2.lastKey == 'ArrowLeft') {
+            player2.velocity.x = -5;
+        } else if (keys.ArrowRight.pressed && player2.lastKey == 'ArrowRight') {
+            player2.velocity.x = 5;
+        }
     }
 
-    if (keys.a.pressed && !keys.d.pressed) {
-        player1.facing = -1
-    } else if (keys.d.pressed && !keys.a.pressed) {
-        player1.facing = 1
+    if (!player1.isMovementLocked()) {
+        if (keys.a.pressed && !keys.d.pressed) {
+            player1.facing = -1
+        } else if (keys.d.pressed && !keys.a.pressed) {
+            player1.facing = 1
+        }
     }
-    if (keys.ArrowLeft.pressed && !keys.ArrowRight.pressed) {
-        player2.facing = -1
-    } else if (keys.ArrowRight.pressed && !keys.ArrowLeft.pressed) {
-        player2.facing = 1
+    if (!player2.isMovementLocked()) {
+        if (keys.ArrowLeft.pressed && !keys.ArrowRight.pressed) {
+            player2.facing = -1
+        } else if (keys.ArrowRight.pressed && !keys.ArrowLeft.pressed) {
+            player2.facing = 1
+        }
     }
 
     const updateState = (fighter) => {
-        if (fighter.velocity.y < -0.1) {
-            fighter.switchSprite('jump')
-        } else if (fighter.velocity.y > 0.1) {
-            fighter.switchSprite('fall')
+        if (fighter.isAttacking || fighter.dead) return
+        let next = fighter.currentState
+        if (!fighter.onGround) {
+            next = fighter.velocity.y < 0 ? 'jump' : 'fall'
         } else if (fighter.velocity.x !== 0) {
-            fighter.switchSprite('run')
+            next = 'run'
         } else {
-            fighter.switchSprite('idle')
+            next = 'idle'
+        }
+        if (next !== fighter.currentState) {
+            fighter.currentState = next
+            fighter.switchSprite(next)
         }
     }
     updateState(player1)
@@ -399,16 +439,16 @@ function animate() {
     if (rectangularCollision({
         rectangle1: player1,
         rectangle2: player2
-    }) && player1.isAttacking) {
-            player1.isAttacking = false
+    }) && player1.isAttacking && !player1.hasHit) {
+            player1.hasHit = true
             player2.health = clamp(player2.health - 10, 0, 100)
             syncHealthUI()
     }
     if (rectangularCollision({
         rectangle1: player2,
         rectangle2: player1
-    }) && player2.isAttacking) {
-            player2.isAttacking = false
+    }) && player2.isAttacking && !player2.hasHit) {
+            player2.hasHit = true
             player1.health = clamp(player1.health - 10, 0, 100)
             syncHealthUI()
     }
@@ -442,7 +482,9 @@ window.addEventListener('keydown', (event) =>  {
             break;
         case 'w': // jump
             controlsLegendState.p1HasMoved = true
-            player1.velocity.y = -15
+            if (!player1.isMovementLocked()) {
+                player1.velocity.y = -15
+            }
             break;
         case 'f':
             player1.attack()
@@ -463,8 +505,13 @@ window.addEventListener('keydown', (event) =>  {
             break;
         case 'ArrowUp': // jump
             controlsLegendState.p2HasMoved = true
-            player2.velocity.y = -15
+            if (!player2.isMovementLocked()) {
+                player2.velocity.y = -15
+            }
             break;
+        case 'h':
+            window.DEBUG_HITBOXES = !window.DEBUG_HITBOXES
+            break
         case '/':
             player2.attack()
             break

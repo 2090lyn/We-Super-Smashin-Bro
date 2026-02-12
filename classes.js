@@ -7,34 +7,69 @@ class Sprite {
         framesMax = 1,
         offset = { x: 0, y: 0 }
     }) {
-    this.position = position
-    this.width = 50
-    this.height = 150
-    this.image = new Image()
-    this.image.src = imageSrc ?? imgSrc ?? ''
-    this.scale = scale
-    this.framesMax = Math.max(1, framesMax)
-    this.framesCurrent = 0
-    this.framesElapsed = 0
-    this.framesHold = 5
-    this.offset = offset
+        this.position = position
+        this.width = 50
+        this.height = 150
+        this.image = new Image()
+        this.image.src = imageSrc ?? imgSrc ?? ''
+        this.scale = scale
+        this.framesMax = Math.max(1, framesMax)
+        this.framesCurrent = 0
+        this.framesElapsed = 0
+        this.framesHold = 5
+        this.offset = offset
+        this.mirror = false
+
+        this.image.onload = () => {
+            this.recalcDimensions()
+        }
+    }
+
+    recalcDimensions() {
+        if (!this.image || !this.image.naturalWidth) return
+        const frameWidth = this.image.width / this.framesMax
+        this.width = frameWidth * this.scale
+        this.height = this.image.height * this.scale
     }
 
     draw() {
         if (!this.image.complete || this.image.naturalWidth === 0) return
 
         const frameWidth = this.image.width / this.framesMax
-        c.drawImage(
-        this.image,
-        this.framesCurrent * frameWidth,
-        0,
-        frameWidth,
-        this.image.height,
-        this.position.x - this.offset.x,
-        this.position.y - this.offset.y,
-        frameWidth * this.scale,
-        this.image.height * this.scale
-        )
+        const drawWidth = frameWidth * this.scale
+        const drawHeight = this.image.height * this.scale
+        const dx = this.position.x - this.offset.x
+        const dy = this.position.y - this.offset.y
+
+        c.save()
+        if (this.mirror) {
+            c.translate(dx + drawWidth, dy)
+            c.scale(-1, 1)
+            c.drawImage(
+                this.image,
+                this.framesCurrent * frameWidth,
+                0,
+                frameWidth,
+                this.image.height,
+                0,
+                0,
+                drawWidth,
+                drawHeight
+            )
+        } else {
+            c.drawImage(
+                this.image,
+                this.framesCurrent * frameWidth,
+                0,
+                frameWidth,
+                this.image.height,
+                dx,
+                dy,
+                drawWidth,
+                drawHeight
+            )
+        }
+        c.restore()
     }
 
     animateFrames() {
@@ -66,7 +101,11 @@ class Sprite {
         framesMax = 1,
         offset = { x: 0, y: 0 },
         sprites,
-        attackBox = { offset: { x: 0, y: 0 }, width: 100, height: 50 }
+        attackBox = { offset: { x: 0, y: 0 }, width: 100, height: 50 },
+        hitbox = { offset: { x: 0, y: 0 }, width: undefined, height: undefined },
+        facing = 1,
+        attackDuration = 220,
+        attackCooldown = 350
     }) {
         super({
             position,
@@ -81,31 +120,63 @@ class Sprite {
         this.width = 50
         this.height = 150
         this.lastKey
-        const attackOffset = attackBox.offset ?? { x: 0, y: 0 }
+        const baseAttackOffset = attackBox.offset ?? { x: 0, y: 0 }
+        const attackOffsetLeft = attackBox.offsetLeft ?? attackBox.offset?.left ?? baseAttackOffset
+        const attackOffsetRight = attackBox.offsetRight ?? attackBox.offset?.right ?? baseAttackOffset
+        this.attackBoxOffsets = { left: attackOffsetLeft, right: attackOffsetRight }
+        const initialAttackOffset = this.facing === -1 ? attackOffsetLeft : attackOffsetRight
         this.attackBox = {
-        position: {
-            x: this.position.x,
-            y: this.position.y
-        },
-        offset: attackOffset,
-        width: attackBox.width ?? 100,
-        height: attackBox.height ?? 50
+            position: {
+                x: this.position.x,
+                y: this.position.y
+            },
+            offset: initialAttackOffset,
+            width: attackBox.width ?? 100,
+            height: attackBox.height ?? 50
+        }
+        const hitboxOffset = hitbox.offset ?? { x: 0, y: 0 }
+        this.hitbox = {
+            position: {
+                x: this.position.x + hitboxOffset.x,
+                y: this.position.y + hitboxOffset.y
+            },
+            offset: hitboxOffset,
+            width: hitbox.width,
+            height: hitbox.height
+        }
+        this.hitboxCustom = {
+            width: hitbox.width,
+            height: hitbox.height
         }
         this.color = color
         this.isAttacking
         this.attackTimeout
+        this.attackDuration = attackDuration
+        this.attackCooldown = attackCooldown
+        this.lastAttackTime = 0
+        this.attackLockUntil = 0
+        this.hasHit = false
         this.health = 100
         this.framesCurrent = 0
         this.framesElapsed = 0
         this.framesHold = 5
         this.sprites = sprites
         this.dead = false
+        this.facing = facing >= 0 ? 1 : -1
+        this.mirror = false
+        this.currentState = 'idle'
+        this.onGround = false
 
         if (this.sprites) {
-        for (const sprite in this.sprites) {
-            this.sprites[sprite].image = new Image()
-            this.sprites[sprite].image.src = this.sprites[sprite].imageSrc
-        }
+            for (const sprite in this.sprites) {
+                const img = new Image()
+                img.onload = () => {
+                    if (this.image === img) this.recalcDimensions()
+                }
+                const src = this.sprites[sprite].imageSrc ?? this.sprites[sprite].imgSrc ?? ''
+                img.src = src
+                this.sprites[sprite].image = img
+            }
         }
     }
 
@@ -117,51 +188,101 @@ class Sprite {
         c.fillRect(this.position.x, this.position.y, this.width, this.height)
         }
 
-        if (this.isAttacking) {
-        c.fillStyle = 'yellow'
-        c.fillRect(
-            this.attackBox.position.x,
-            this.attackBox.position.y,
-            this.attackBox.width,
-            this.attackBox.height
-        )
+        const debugHitboxes = typeof window !== 'undefined' && window.DEBUG_HITBOXES
+        if (!debugHitboxes) {
+            c.save()
+            c.globalAlpha = 0.7
+            c.strokeStyle = 'lime'
+            c.lineWidth = 2
+            c.strokeRect(
+                this.position.x - this.offset.x,
+                this.position.y - this.offset.y,
+                this.width,
+                this.height
+            )
+            c.strokeStyle = 'red'
+            c.strokeRect(
+                this.hitbox.position.x,
+                this.hitbox.position.y,
+                this.hitbox.width ?? this.width,
+                this.hitbox.height ?? this.height
+            )
+            c.strokeStyle = 'yellow'
+            c.strokeRect(
+                this.attackBox.position.x,
+                this.attackBox.position.y,
+                this.attackBox.width,
+                this.attackBox.height
+            )
+            c.restore()
         }
     }
 
     update() {
         this.draw()
-        if (!this.dead) this.animateFrames()
+        const isMoving = Math.abs(this.velocity.x) > 0.01 || Math.abs(this.velocity.y) > 0.01
+        if (!this.dead && (isMoving || this.isAttacking)) this.animateFrames()
 
         this.position.x += this.velocity.x
         this.position.y += this.velocity.y
 
-        const bounds = stage?.bounds
-        const groundOffset = 30
-        const groundY = (bounds ? bounds.y + bounds.height : stage.height) + groundOffset
+        const bounds = stage?.worldBounds ?? stage?.bounds
+        const groundOffset = 0
+        const groundY = (bounds ? bounds.height : stage.height) + groundOffset
         if (this.position.y + this.height + this.velocity.y >= groundY) {
-        this.velocity.y = 0
-        this.position.y = groundY - this.height
+            this.velocity.y = 0
+            this.position.y = groundY - this.height
+            this.onGround = true
         } else {
-        this.velocity.y += gravity
+            this.velocity.y += gravity
+            this.onGround = false
         }
 
         if (bounds) {
-        const minX = bounds.x
-        const maxX = bounds.x + bounds.width - this.width
-        this.position.x = Math.max(minX, Math.min(this.position.x, maxX))
+            const minX = bounds.x
+            const maxX = bounds.x + bounds.width - this.width
+            this.position.x = Math.max(minX, Math.min(this.position.x, maxX))
         }
 
-        this.attackBox.position.x = this.position.x + this.attackBox.offset.x
-        this.attackBox.position.y = this.position.y + this.attackBox.offset.y
+        const hbWidth = this.hitboxCustom.width ?? this.width
+        const hbHeight = this.hitboxCustom.height ?? this.height
+        this.hitbox.position.x = this.position.x + this.hitbox.offset.x
+        this.hitbox.position.y = this.position.y + this.hitbox.offset.y
+        this.hitbox.width = hbWidth
+        this.hitbox.height = hbHeight
+
+        const attackOffset = this.facing === -1 ? this.attackBoxOffsets.left : this.attackBoxOffsets.right
+        this.attackBox.offset = attackOffset
+        const frontOffset = attackOffset.x ?? 0
+        const verticalOffset = attackOffset.y ?? 0
+        const attackX = this.facing === 1
+            ? this.position.x + hbWidth + frontOffset
+            : this.position.x - this.attackBox.width - frontOffset
+        const attackY = this.position.y + (hbHeight * 0.55) + verticalOffset - this.attackBox.height / 2
+        this.attackBox.position.x = attackX
+        this.attackBox.position.y = attackY
     }
 
     attack() {
+        const now = (typeof performance !== 'undefined' ? performance.now() : Date.now())
+        if (now - this.lastAttackTime < this.attackCooldown) return
+        if (this.dead) return
+        this.lastAttackTime = now
+        this.attackLockUntil = now + this.attackDuration
+        this.hasHit = false
         if (this.sprites) this.switchSprite('attack1')
-            this.isAttacking = true
+        this.isAttacking = true
         if (this.attackTimeout) clearTimeout(this.attackTimeout)
         this.attackTimeout = setTimeout(() => {
             this.isAttacking = false
-        }, 100)
+            this.currentState = 'idle'
+            if (this.sprites) this.switchSprite('idle')
+        }, this.attackDuration)
+    }
+
+    isMovementLocked() {
+        const now = (typeof performance !== 'undefined' ? performance.now() : Date.now())
+        return now < this.attackLockUntil
     }
 
     takeHit() {
@@ -179,73 +300,79 @@ class Sprite {
         if (!this.sprites) return
 
         if (this.image === this.sprites.death?.image) {
-        if (this.framesCurrent === this.sprites.death.framesMax - 1)
-            this.dead = true
-        return
+            if (this.framesCurrent === this.sprites.death.framesMax - 1)
+                this.dead = true
+            return
         }
 
         if (
-        this.image === this.sprites.attack1?.image &&
-        this.framesCurrent < this.sprites.attack1.framesMax - 1
+            this.image === this.sprites.attack1?.image &&
+            this.framesCurrent < this.sprites.attack1.framesMax - 1
         )
-        return
+            return
 
         if (
-        this.image === this.sprites.takeHit?.image &&
-        this.framesCurrent < this.sprites.takeHit.framesMax - 1
+            this.image === this.sprites.takeHit?.image &&
+            this.framesCurrent < this.sprites.takeHit.framesMax - 1
         )
-        return
+            return
 
-        switch (sprite) {
-        case 'idle':
-            if (this.image !== this.sprites.idle?.image) {
-            this.image = this.sprites.idle.image
-            this.framesMax = this.sprites.idle.framesMax
+        const resolved = this.resolveSprite(sprite)
+        if (!resolved) return
+
+        const offsetChanged = resolved.offset &&
+            (resolved.offset.x !== this.offset.x || resolved.offset.y !== this.offset.y)
+
+        const scaleChanged = resolved.scale !== undefined && resolved.scale !== this.scale
+
+        if (
+            this.image !== resolved.image ||
+            this.framesMax !== resolved.framesMax ||
+            this.mirror !== resolved.mirror ||
+            offsetChanged ||
+            scaleChanged
+        ) {
+            this.image = resolved.image
+            this.framesMax = resolved.framesMax
+            this.framesHold = resolved.framesHold ?? this.framesHold
             this.framesCurrent = 0
+            this.mirror = !!resolved.mirror
+            if (resolved.scale !== undefined) {
+                this.scale = resolved.scale
             }
-            break
-        case 'run':
-            if (this.image !== this.sprites.run?.image) {
-            this.image = this.sprites.run.image
-            this.framesMax = this.sprites.run.framesMax
-            this.framesCurrent = 0
+            if (resolved.offset) {
+                this.offset = {
+                    x: resolved.offset.x ?? this.offset.x,
+                    y: resolved.offset.y ?? this.offset.y
+                }
             }
-            break
-        case 'jump':
-            if (this.image !== this.sprites.jump?.image) {
-            this.image = this.sprites.jump.image
-            this.framesMax = this.sprites.jump.framesMax
-            this.framesCurrent = 0
-            }
-            break
-        case 'fall':
-            if (this.image !== this.sprites.fall?.image) {
-            this.image = this.sprites.fall.image
-            this.framesMax = this.sprites.fall.framesMax
-            this.framesCurrent = 0
-            }
-            break
-        case 'attack1':
-            if (this.image !== this.sprites.attack1?.image) {
-            this.image = this.sprites.attack1.image
-            this.framesMax = this.sprites.attack1.framesMax
-            this.framesCurrent = 0
-            }
-            break
-        case 'takeHit':
-            if (this.image !== this.sprites.takeHit?.image) {
-            this.image = this.sprites.takeHit.image
-            this.framesMax = this.sprites.takeHit.framesMax
-            this.framesCurrent = 0
-            }
-            break
-        case 'death':
-            if (this.image !== this.sprites.death?.image) {
-            this.image = this.sprites.death.image
-            this.framesMax = this.sprites.death.framesMax
-            this.framesCurrent = 0
-            }
-            break
+            this.recalcDimensions()
+        }
+    }
+
+    resolveSprite(name) {
+        if (!this.sprites) return null
+        const dir = this.facing === -1 ? 'Left' : 'Right'
+
+        const candidates = [
+            `${name}${dir}`,
+            `${name}_${dir.toLowerCase()}`,
+            `${name}${dir.toLowerCase()}`,
+            name
+        ]
+
+        const selectedKey = candidates.find(key => this.sprites[key])
+        if (!selectedKey) return null
+
+        const sprite = this.sprites[selectedKey]
+
+        return {
+            image: sprite.image,
+            framesMax: sprite.framesMax ?? sprite.frames ?? 1,
+            framesHold: sprite.framesHold,
+            mirror: false,
+            offset: sprite.offset,
+            scale: sprite.scale
         }
     }
 }
