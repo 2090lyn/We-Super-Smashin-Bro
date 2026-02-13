@@ -20,7 +20,7 @@ const deathBgm = document.getElementById('rizzbgm')
 
 const DEFAULT_VOLUME = 0.5
 const MUSIC_MIX = 0.4  // music volume multiplier
-const SFX_MIX = 0.7    // sfx volume multiplier
+const SFX_MIX = 0.4    // sfx volume multiplier
 let userVolume = DEFAULT_VOLUME
 let isMuted = false
 
@@ -208,7 +208,7 @@ function initializePlayers() {
             }
         },
         attackDuration: 350,
-        attackCooldown: 500,
+        attackCooldown: 525,
         hitDuration: 350
     })
 

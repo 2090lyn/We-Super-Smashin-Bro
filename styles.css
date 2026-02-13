@@ -261,7 +261,6 @@ canvas {
 .press-enter {
     position: absolute;
     bottom: 60px;
-    font-size: clamp(18px, 3vw, 28px);
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
     text-transform: uppercase;
@@ -296,11 +295,12 @@ canvas {
     font-size: clamp(32px, 6vw, 56px);
     font-weight: 900;
     margin: 0;
-    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    color: white;
+    background: linear-gradient(135deg, #b28bed 0%, #a562e5 50%, #765df5 100%);
     -webkit-background-clip: text;
     background-clip: text;
     -webkit-text-fill-color: transparent;
-    text-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+    text-shadow: 0 4px 20px rgba(246, 76, 255, 0.5);
     animation: victoryGlow 1.5s ease-in-out infinite;
 }
 
@@ -324,9 +324,9 @@ canvas {
     padding: 18px 48px;
     font-size: clamp(18px, 3vw, 24px);
     font-weight: 800;
-    color: oklch(47.6% 0.114 61.907);
+    color: oklch(98.5% 0 0);
     font-family: "Press Start 2P", system-ui;
-    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    background: linear-gradient(135deg, #e0aae7 0%, #d885ea 50%, #f599e4 100%);
     border: none;
     border-radius: 12px;
     cursor: pointer;
@@ -341,7 +341,7 @@ canvas {
 }
 
 .secondary-button {
-    background: linear-gradient(135deg, #888 0%, #aaa 50%, #888 100%);
+    background: linear-gradient(135deg, #87ccf9 0%, #7fe3f0 50%, #87e2e2 100%);
     box-shadow: 
         0 10px 30px rgba(0, 0, 0, 0.3),
         inset 0 2px 0 rgba(255, 255, 255, 0.3),
