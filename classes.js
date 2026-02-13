@@ -105,7 +105,8 @@ class Sprite {
         hitbox = { offset: { x: 0, y: 0 }, width: undefined, height: undefined },
         facing = 1,
         attackDuration = 220,
-        attackCooldown = 350
+        attackCooldown = 350,
+        hitDuration = 180
     }) {
         super({
             position,
@@ -156,6 +157,8 @@ class Sprite {
         this.lastAttackTime = 0
         this.attackLockUntil = 0
         this.hasHit = false
+        this.hitDuration = hitDuration
+        this.hitTimeout
         this.health = 100
         this.framesCurrent = 0
         this.framesElapsed = 0
@@ -239,8 +242,8 @@ class Sprite {
         }
 
         if (bounds) {
-            const minX = bounds.x
-            const maxX = bounds.x + bounds.width - this.width
+            const minX = bounds.x + this.offset.x - 100
+            const maxX = bounds.x + bounds.width - this.width + this.offset.x + 100
             this.position.x = Math.max(minX, Math.min(this.position.x, maxX))
         }
 
@@ -286,13 +289,21 @@ class Sprite {
     }
 
     takeHit() {
-        this.health -= 20
+        this.health -= 10
 
         if (!this.sprites) return
         if (this.health <= 0) {
-        this.switchSprite('death')
+            this.currentState = 'death'
+            this.switchSprite('death')
         } else {
-        this.switchSprite('takeHit')
+            this.currentState = 'takeHit'
+            this.switchSprite('takeHit')
+            if (this.hitTimeout) clearTimeout(this.hitTimeout)
+            this.hitTimeout = setTimeout(() => {
+                if (this.dead) return
+                this.currentState = 'idle'
+                if (!this.isAttacking) this.switchSprite('idle')
+            }, this.hitDuration)
         }
     }
 

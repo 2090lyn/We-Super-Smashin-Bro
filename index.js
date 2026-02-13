@@ -1,6 +1,28 @@
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d') // c = contex
 
+// ---------------------- Audio -----------------------
+const sfx = {
+    attack: new Audio('./audio/attack.mp3'),
+    hit: new Audio('./audio/hit.mp3'),
+    jump: new Audio('./audio/jump.mp3'),
+    walk: new Audio('./audio/footsteps.wav')
+}
+
+sfx.attack.playbackRate = 1.1
+
+sfx.walk.playbackRate = 1
+
+sfx.jump.playbackRate = 2
+sfx.jump.volume = 0.2
+
+function playSfx(sound) {
+    if (!sound) return
+    sound.currentTime = 0
+    sound.play().catch(() => {})
+}
+// ---------------------------------------------------
+
 const stage = {
     width: 0,
     height: 0,
@@ -61,19 +83,19 @@ const background = new Sprite({
 
 const player1 = new Fighter({
     hitbox: {
-        offset: { x: -20, y: -100 }, // move the red box
+        offset: { x: 60, y: -100 }, // move the red box
         width: 250,
         height: 360
     },
 
     position: { x: 100, y: 0 },
     velocity: { x: 0, y: 0 },
-    imgSrc: './imgs/Cathlyn/CathlynRight.png',
+    imgSrc: './imgs/Cathlyn/Right.png',
     framesMax: 1,
     attackBox: {
         offset: { 
-            left: {x: -20, y: -150 },
-            right: {x: -70, y: -150 },
+            left: {x: -110, y: -130 },
+            right: {x: 0, y: -130 },
         },
         width: 150,
         height: 12
@@ -81,58 +103,59 @@ const player1 = new Fighter({
     scale: 0.8,
     offset: { x: 100, y: 130 },
     sprites: {
-        idle: { imageSrc: './imgs/Cathlyn/CathlynRight.png', framesMax: 1 },
+        idle: { imageSrc: './imgs/Cathlyn/Right.png', framesMax: 1 },
         idleLeft: { 
-            imageSrc: './imgs/Cathlyn/CathlynLeft.png', 
+            imageSrc: './imgs/Cathlyn/Left.png', 
             framesMax: 1
         },
         run: { 
-            imageSrc: './imgs/Cathlyn/CathlynWalkRight.png', 
+            imageSrc: './imgs/Cathlyn/WalkRight.png', 
             framesMax: 1,
         },
         runLeft: { 
-            imageSrc: './imgs/Cathlyn/CathlynWalkLeft.png', 
+            imageSrc: './imgs/Cathlyn/WalkLeft.png', 
             framesMax: 1
         },
         jump: { 
-            imageSrc: './imgs/Cathlyn/CathlynJumpRight.png', 
+            imageSrc: './imgs/Cathlyn/JumpRight.png', 
             framesMax: 1
         },
         jumpLeft: { 
-            imageSrc: './imgs/Cathlyn/CathlynJumpLeft.png', 
+            imageSrc: './imgs/Cathlyn/JumpLeft.png', 
             framesMax: 1
         },
         fall: { 
-            imageSrc: './imgs/Cathlyn/CathlynJumpRight.png', 
+            imageSrc: './imgs/Cathlyn/JumpRight.png', 
             framesMax: 1
         },
         fallLeft: { 
-            imageSrc: './imgs/Cathlyn/CathlynJumpLeft.png', 
+            imageSrc: './imgs/Cathlyn/JumpLeft.png', 
             framesMax: 1
         },
         attack1: { 
-            imageSrc: './imgs/Cathlyn/CathlynRight.png', 
+            imageSrc: './imgs/Cathlyn/AttackRight.png', 
             framesMax: 1 
         },
         attack1Left: { 
-            imageSrc: './imgs/Cathlyn/CathlynLeft.png', 
+            imageSrc: './imgs/Cathlyn/AttackLeft.png', 
             framesMax: 1 
         },
         takeHit: { 
-            imageSrc: './imgs/Cathlyn/CathlynLeft.png', 
+            imageSrc: './imgs/Cathlyn/HitLeft.png', 
             framesMax: 1 
         },
         takeHitRight: { 
-            imageSrc: './imgs/Cathlyn/CathlynRight.png', 
+            imageSrc: './imgs/Cathlyn/HitRight.png', 
             framesMax: 1 
         },
         death: { 
-            imageSrc: './imgs/Cathlyn/CathlynRight.png', 
+            imageSrc: './imgs/Cathlyn/Right.png', 
             framesMax: 1 
         }
     },
     attackDuration: 350,
-    attackCooldown: 500
+    attackCooldown: 500,
+    hitDuration: 350
 })
 
 const player2 = new Fighter({
@@ -167,12 +190,13 @@ const player2 = new Fighter({
         fallRight: { imageSrc: './imgs/Noah/NoahJumpRight.png', framesMax: 1 },
         attack1: { imageSrc: './imgs/Noah/NoahAttackLeft.png', framesMax: 1 },
         attack1Right: { imageSrc: './imgs/Noah/NoahAttackRight.png', framesMax: 1 },
-        takeHit: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 },
-        takeHitRight: { imageSrc: './imgs/Noah/NoahRight.png', framesMax: 1 },
+        takeHit: { imageSrc: './imgs/Noah/HitLeft.png', framesMax: 1 },
+        takeHitRight: { imageSrc: './imgs/Noah/HitRight.png', framesMax: 1 },
         death: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 }
     },
     attackDuration: 350,
-    attackCooldown: 500
+    attackCooldown: 550,
+    hitDuration: 350
 })
 
 syncHealthUI()
@@ -402,23 +426,42 @@ function animate() {
         }
     }
 
+    const prevFacing1 = player1.facing
+    const prevFacing2 = player2.facing
+
     if (!player1.isMovementLocked()) {
-        if (keys.a.pressed && !keys.d.pressed) {
-            player1.facing = -1
-        } else if (keys.d.pressed && !keys.a.pressed) {
-            player1.facing = 1
+        if (keys.a.pressed || keys.d.pressed) {
+            if (keys.a.pressed && keys.d.pressed) {
+                if (player1.lastKey === 'a') player1.facing = -1
+                else if (player1.lastKey === 'd') player1.facing = 1
+            } else if (keys.a.pressed) {
+                player1.facing = -1
+            } else if (keys.d.pressed) {
+                player1.facing = 1
+            }
         }
     }
     if (!player2.isMovementLocked()) {
-        if (keys.ArrowLeft.pressed && !keys.ArrowRight.pressed) {
-            player2.facing = -1
-        } else if (keys.ArrowRight.pressed && !keys.ArrowLeft.pressed) {
-            player2.facing = 1
+        if (keys.ArrowLeft.pressed || keys.ArrowRight.pressed) {
+            if (keys.ArrowLeft.pressed && keys.ArrowRight.pressed) {
+                if (player2.lastKey === 'ArrowLeft') player2.facing = -1
+                else if (player2.lastKey === 'ArrowRight') player2.facing = 1
+            } else if (keys.ArrowLeft.pressed) {
+                player2.facing = -1
+            } else if (keys.ArrowRight.pressed) {
+                player2.facing = 1
+            }
         }
+    }
+    if (player1.facing !== prevFacing1 && !player1.isAttacking) {
+        player1.switchSprite(player1.currentState)
+    }
+    if (player2.facing !== prevFacing2 && !player2.isAttacking) {
+        player2.switchSprite(player2.currentState)
     }
 
     const updateState = (fighter) => {
-        if (fighter.isAttacking || fighter.dead) return
+        if (fighter.isAttacking || fighter.dead || fighter.currentState === 'takeHit') return
         let next = fighter.currentState
         if (!fighter.onGround) {
             next = fighter.velocity.y < 0 ? 'jump' : 'fall'
@@ -436,21 +479,34 @@ function animate() {
     updateState(player2)
 
     // detect for collision
-    if (rectangularCollision({
+    const hitP1 = rectangularCollision({
         rectangle1: player1,
         rectangle2: player2
-    }) && player1.isAttacking && !player1.hasHit) {
-            player1.hasHit = true
-            player2.health = clamp(player2.health - 10, 0, 100)
-            syncHealthUI()
-    }
-    if (rectangularCollision({
+    }) && player1.isAttacking && !player1.hasHit
+
+    const hitP2 = rectangularCollision({
         rectangle1: player2,
         rectangle2: player1
-    }) && player2.isAttacking && !player2.hasHit) {
-            player2.hasHit = true
-            player1.health = clamp(player1.health - 10, 0, 100)
-            syncHealthUI()
+    }) && player2.isAttacking && !player2.hasHit
+
+    if (hitP1) {
+        player1.hasHit = true
+    }
+    if (hitP2) {
+        player2.hasHit = true
+    }
+    if (hitP1) {
+        player2.takeHit()
+        playSfx(sfx.hit)
+        player2.health = clamp(player2.health, 0, 100)
+    }
+    if (hitP2) {
+        player1.takeHit()
+        playSfx(sfx.hit)
+        player1.health = clamp(player1.health, 0, 100)
+    }
+    if (hitP1 || hitP2) {
+        syncHealthUI()
     }
 
     drawControlsLegend()
@@ -485,9 +541,13 @@ window.addEventListener('keydown', (event) =>  {
             if (!player1.isMovementLocked()) {
                 player1.velocity.y = -15
             }
+            if (!event.repeat) playSfx(sfx.jump)
             break;
         case 'f':
-            player1.attack()
+            if (!event.repeat) {
+                player1.attack()
+                playSfx(sfx.attack)
+            }
             break
 
         // player 2
@@ -496,6 +556,7 @@ window.addEventListener('keydown', (event) =>  {
             player2.facing = 1
             keys.ArrowRight.pressed = true;
             player2.lastKey = 'ArrowRight'
+            playFootstep()
             break;
         case 'ArrowLeft': 
             controlsLegendState.p2HasMoved = true
@@ -508,12 +569,16 @@ window.addEventListener('keydown', (event) =>  {
             if (!player2.isMovementLocked()) {
                 player2.velocity.y = -15
             }
+            if (!event.repeat) playSfx(sfx.jump)
             break;
         case 'h':
             window.DEBUG_HITBOXES = !window.DEBUG_HITBOXES
             break
         case '/':
-            player2.attack()
+            if (!event.repeat) {
+                player2.attack()
+                playSfx(sfx.attack)
+            }
             break
     }
 
