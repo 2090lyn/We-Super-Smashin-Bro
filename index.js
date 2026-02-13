@@ -56,7 +56,7 @@ function resizeStage() {
 window.addEventListener('resize', resizeStage)
 resizeStage()
 
-const gravity = 0.7
+const gravity = 1
 window.DEBUG_HITBOXES = true
 
 const player1HealthFill = document.querySelector('#player1-health')
@@ -88,7 +88,7 @@ const player1 = new Fighter({
         height: 360
     },
 
-    position: { x: 100, y: 0 },
+    position: { x: 0, y: 0 },
     velocity: { x: 0, y: 0 },
     imgSrc: './imgs/Cathlyn/Right.png',
     framesMax: 1,
@@ -408,21 +408,21 @@ function animate() {
     player1.velocity.x = 0; // stops player
     player2.velocity.x = 0;
 
-    // player1 movementaa
+    // player1 movement
     if (!player1.isMovementLocked()) {
         if (keys.a.pressed && player1.lastKey == 'a') {
-            player1.velocity.x = -5;
+            player1.velocity.x = -10;
         } else if (keys.d.pressed && player1.lastKey == 'd') {
-            player1.velocity.x = 5;
+            player1.velocity.x = 10;
         }
     }
 
     // player2 movement
     if (!player2.isMovementLocked()) {
         if (keys.ArrowLeft.pressed && player2.lastKey == 'ArrowLeft') {
-            player2.velocity.x = -5;
+            player2.velocity.x = -10;
         } else if (keys.ArrowRight.pressed && player2.lastKey == 'ArrowRight') {
-            player2.velocity.x = 5;
+            player2.velocity.x = 10;
         }
     }
 
@@ -539,7 +539,7 @@ window.addEventListener('keydown', (event) =>  {
         case 'w': // jump
             controlsLegendState.p1HasMoved = true
             if (!player1.isMovementLocked()) {
-                player1.velocity.y = -15
+                player1.velocity.y = -20
             }
             if (!event.repeat) playSfx(sfx.jump)
             break;
@@ -567,7 +567,7 @@ window.addEventListener('keydown', (event) =>  {
         case 'ArrowUp': // jump
             controlsLegendState.p2HasMoved = true
             if (!player2.isMovementLocked()) {
-                player2.velocity.y = -15
+                player2.velocity.y = -20
             }
             if (!event.repeat) playSfx(sfx.jump)
             break;
