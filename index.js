@@ -450,7 +450,7 @@ function showDeathScreen() {
     
     // Set winner image
     if (winner === 'Player 1') {
-        deathImage.src = './imgs/Cathlyn/Right.png'
+        deathImage.src = './imgs/Cathlyn/rose.png'
     } else {
         deathImage.src = './imgs/Noah/NoahRight.png'
     }
