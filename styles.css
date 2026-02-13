@@ -38,7 +38,7 @@ canvas {
     width: min(1200px, calc(100% - 32px));
     display: flex;
     align-items: center;
-    gap: 0; /* health bars should touch the heart */
+    gap: 0;
     pointer-events: none;
 }
 
@@ -183,5 +183,270 @@ canvas {
     50% {
         transform: scale(1.18);
         opacity: 0.9;
+    }
+}
+
+/* Screen Overlays */
+.screen-overlay {
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100vw;
+    height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    z-index: 1000;
+}
+
+/* Title Screen - with background image */
+#titleScreen {
+    background-image: url('./imgs/titlebg.jpg');
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+#titleScreen::before {
+    content: "";
+    position: absolute;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.3);
+    z-index: -1;
+}
+
+/* Death Screen - with blur */
+#deathScreen {
+    background: rgba(0, 0, 0, 0.92);
+    backdrop-filter: blur(12px);
+}
+
+.screen-content {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 32px;
+    padding: 40px;
+    text-align: center;
+}
+
+/* Title Screen */
+.title-logo {
+    position: absolute;
+    top: 40px;
+    right: 70px;
+    display: flex;
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 16px;
+}
+
+.title-text {
+    font-size: clamp(48px, 8vw, 96px);
+    font-weight: 800;
+    font-family: "Cute Font", sans-serif;
+    margin: 0;
+    color: whitesmoke;
+    text-shadow: 
+        0 4px 20px rgba(255, 47, 117, 0.8),
+        0 2px 4px rgba(0, 0, 0, 0.8);
+    letter-spacing: -0.02em;
+    animation: titleGlow 2s ease-in-out infinite;
+}
+
+.press-enter {
+    position: absolute;
+    bottom: 20px;
+    font-family: "Cute Font", sans-serif;
+    font-size: clamp(18px, 3vw, 28px);
+    font-weight: 600;
+    color: rgba(255, 255, 255, 0.9);
+    text-transform: uppercase;
+    letter-spacing: 0.15em;
+    animation: pressEnterPulse 1.5s ease-in-out infinite;
+    text-shadow: 
+        0 2px 8px rgba(255, 215, 0, 0.6),
+        0 0 20px rgba(255, 215, 0, 0.4);
+}
+
+/* Death Screen */
+.death-image-container {
+    width: clamp(200px, 40vw, 400px);
+    height: clamp(200px, 40vw, 400px);
+    border-radius: 20px;
+    overflow: hidden;
+    border: 4px solid rgba(255, 215, 0, 0.3);
+    box-shadow: 
+        0 20px 60px rgba(0, 0, 0, 0.5),
+        0 0 40px rgba(255, 215, 0, 0.2);
+    background: rgba(0, 0, 0, 0.3);
+}
+
+.death-image {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    image-rendering: pixelated;
+}
+
+.death-title {
+    font-size: clamp(32px, 6vw, 56px);
+    font-weight: 900;
+    margin: 0;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    -webkit-background-clip: text;
+    background-clip: text;
+    -webkit-text-fill-color: transparent;
+    text-shadow: 0 4px 20px rgba(255, 215, 0, 0.5);
+    animation: victoryGlow 1.5s ease-in-out infinite;
+}
+
+.death-subtitle {
+    font-size: clamp(16px, 3vw, 24px);
+    color: rgba(255, 255, 255, 0.7);
+    font-weight: 600;
+    margin-top: -16px;
+}
+
+/* Golden Button */
+.golden-button {
+    position: relative;
+    padding: 18px 48px;
+    font-size: clamp(18px, 3vw, 24px);
+    font-weight: 800;
+    color: oklch(47.6% 0.114 61.907);
+    font-family: "Press Start 2P", system-ui;
+    background: linear-gradient(135deg, #ffd700 0%, #ffed4e 50%, #ffd700 100%);
+    border: none;
+    border-radius: 12px;
+    cursor: pointer;
+    overflow: hidden;
+    box-shadow: 
+        0 10px 30px rgba(255, 215, 0, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+    transition: all 0.2s ease;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+}
+
+.golden-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 14px 40px rgba(255, 215, 0, 0.5),
+        inset 0 2px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.golden-button:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 6px 20px rgba(255, 215, 0, 0.3),
+        inset 0 2px 0 rgba(255, 255, 255, 0.5),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.button-shine {
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(
+        45deg,
+        transparent 30%,
+        rgba(255, 255, 255, 0.4) 50%,
+        transparent 70%
+    );
+    animation: buttonShine 3s ease-in-out infinite;
+    pointer-events: none;
+}
+
+.button-text {
+    position: relative;
+    z-index: 1;
+}
+
+/* Animations */
+@keyframes fadeIn {
+    from {
+        opacity: 0;
+    }
+    to {
+        opacity: 1;
+    }
+}
+
+@keyframes titleGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 20px rgba(255, 47, 117, 0.5));
+    }
+    50% {
+        filter: drop-shadow(0 0 40px rgba(255, 47, 117, 0.8));
+    }
+}
+
+@keyframes victoryGlow {
+    0%, 100% {
+        filter: drop-shadow(0 0 20px rgba(255, 215, 0, 0.5));
+    }
+    50% {
+        filter: drop-shadow(0 0 40px rgba(255, 215, 0, 0.8));
+    }
+}
+
+@keyframes heartBeat {
+    0%, 100% {
+        transform: scale(1);
+    }
+    25% {
+        transform: scale(1.1);
+    }
+    50% {
+        transform: scale(1);
+    }
+    75% {
+        transform: scale(1.15);
+    }
+}
+
+@keyframes buttonShine {
+    0% {
+        transform: translateX(-100%) translateY(-100%);
+    }
+    100% {
+        transform: translateX(100%) translateY(100%);
+    }
+}
+
+@keyframes pressEnterPulse {
+    0%, 100% {
+        opacity: 0.6;
+        transform: scale(1);
+    }
+    50% {
+        opacity: 1;
+        transform: scale(1.05);
+    }
+}
+
+/* Responsive */
+@media (max-width: 600px) {
+    .screen-content {
+        padding: 20px;
+        gap: 24px;
+    }
+    
+    .title-logo {
+        top: 20px;
+        right: 20px;
+    }
+    
+    .press-enter {
+        bottom: 40px;
     }
 }

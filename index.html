@@ -1,40 +1,69 @@
 <!DOCTYPE html>
 <html lang="en">
-	    <head>
-	        <meta charset="utf-8">
-            <meta name="viewport" content="width=device-width, initial-scale=1.0">
-	        <title> Heart Strike </title>
-	        <link href="styles.css" rel="stylesheet">
-	    </head>
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Heart Strike</title>
+    <link href="styles.css" rel="stylesheet">
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Bitcount+Grid+Double:wght@100..900&family=Cute+Font&family=Press+Start+2P&display=swap" rel="stylesheet">
+</head>
 
 <body>
-    <div class="game">
-	        <div class="hud">
-	            <!-- Player 1 Health -->
-	            <div class="health health-p1">
-	                <div class="health_frame">
-	                    <div id="player1-health" class="health_fill" style="width: 100%"></div>
-	                </div>
-	                <div class="health_tag">P1 ❤</div>
-	            </div>
-	
-	            <!-- Center Heart (no timer) -->
-	            <div class="center-heart">
-	                <img class="center-heart__img" src="./imgs/heart.png" alt="Heart" draggable="false">
-	            </div>
-	
-	            <!-- Player 2 Health -->
-	            <div class="health health-p2">
-	                <div class="health_frame">
-	                    <div id="player2-health" class="health_fill" style="width: 100%"></div>
-	                </div>
-	                <div class="health_tag">❤ P2</div>
-	            </div>
-	        </div>
-        <canvas></canvas>
-        <audio id="footstepSfx" src="./audio/footstep.wav" preload="auto"></audio>
+    <!-- Title Screen -->
+    <div id="titleScreen" class="screen-overlay">
+        <div class="screen-content">
+            <div class="title-logo">
+                <h1 class="title-text">We Super Smashin', Bro</h1>
+            </div>
+            <div class="press-enter">Press Any Key to Start</div>
+        </div>
     </div>
-	<script src="classes.js"></script>
+
+    <!-- Death Screen -->
+    <div id="deathScreen" class="screen-overlay" style="display: none;">
+        <div class="screen-content">
+            <div class="death-image-container">
+                <img id="deathImage" src="" alt="Winner" class="death-image">
+            </div>
+            <h2 class="death-title" id="deathTitle">Player 1 Wins!</h2>
+            <div class="death-subtitle">Victory by knockout</div>
+            <button class="golden-button" id="rematchButton">
+                <span class="button-shine"></span>
+                <span class="button-text">Rematch</span>
+            </button>
+        </div>
+    </div>
+
+    <div class="game">
+        <div class="hud">
+            <!-- Player 1 Health -->
+            <div class="health health-p1">
+                <div class="health_frame">
+                    <div id="player1-health" class="health_fill" style="width: 100%"></div>
+                </div>
+                <div class="health_tag">P1 ❤</div>
+            </div>
+
+            <!-- Center Heart (no timer) -->
+            <div class="center-heart">
+                <img class="center-heart__img" src="./imgs/heart.png" alt="Heart" draggable="false">
+            </div>
+
+            <!-- Player 2 Health -->
+            <div class="health health-p2">
+                <div class="health_frame">
+                    <div id="player2-health" class="health_fill" style="width: 100%"></div>
+                </div>
+                <div class="health_tag">❤ P2</div>
+            </div>
+        </div>
+        <canvas></canvas>
+        <audio id="titleBgm" src="./audio/titlebgm.mp3" loop preload="auto"></audio>
+        <audio id="rizzbgm" src="./audio/rizzbgm.mp3" loop preload="auto"></audio>
+    </div>
+    <script src="classes.js"></script>
     <script src="index.js"></script>
 </body>
 

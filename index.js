@@ -1,6 +1,18 @@
 const canvas = document.querySelector('canvas')
 const c = canvas.getContext('2d') // c = contex
 
+// ---------------------- Game State -----------------------
+let gameState = 'title' // 'title', 'playing', 'gameover'
+let animationId = null
+let winner = null
+
+// ---------------------- Screen Elements -----------------------
+const titleScreen = document.getElementById('titleScreen')
+const deathScreen = document.getElementById('deathScreen')
+const rematchButton = document.getElementById('rematchButton')
+const deathTitle = document.getElementById('deathTitle')
+const deathImage = document.getElementById('deathImage')
+
 // ---------------------- Audio -----------------------
 const sfx = {
     attack: new Audio('./audio/attack.mp3'),
@@ -81,124 +93,129 @@ const background = new Sprite({
     imgSrc: './imgs/fighting arena.png'
 })
 
-const player1 = new Fighter({
-    hitbox: {
-        offset: { x: 60, y: -100 }, // move the red box
-        width: 250,
-        height: 360
-    },
+let player1, player2
 
-    position: { x: 0, y: 0 },
-    velocity: { x: 0, y: 0 },
-    imgSrc: './imgs/Cathlyn/Right.png',
-    framesMax: 1,
-    attackBox: {
-        offset: { 
-            left: {x: -110, y: -130 },
-            right: {x: 0, y: -130 },
+function initializePlayers() {
+    player1 = new Fighter({
+        hitbox: {
+            offset: { x: 60, y: -100 }, // move the red box
+            width: 250,
+            height: 360
         },
-        width: 150,
-        height: 12
-    },
-    scale: 0.8,
-    offset: { x: 100, y: 130 },
-    sprites: {
-        idle: { imageSrc: './imgs/Cathlyn/Right.png', framesMax: 1 },
-        idleLeft: { 
-            imageSrc: './imgs/Cathlyn/Left.png', 
-            framesMax: 1
-        },
-        run: { 
-            imageSrc: './imgs/Cathlyn/WalkRight.png', 
-            framesMax: 1,
-        },
-        runLeft: { 
-            imageSrc: './imgs/Cathlyn/WalkLeft.png', 
-            framesMax: 1
-        },
-        jump: { 
-            imageSrc: './imgs/Cathlyn/JumpRight.png', 
-            framesMax: 1
-        },
-        jumpLeft: { 
-            imageSrc: './imgs/Cathlyn/JumpLeft.png', 
-            framesMax: 1
-        },
-        fall: { 
-            imageSrc: './imgs/Cathlyn/JumpRight.png', 
-            framesMax: 1
-        },
-        fallLeft: { 
-            imageSrc: './imgs/Cathlyn/JumpLeft.png', 
-            framesMax: 1
-        },
-        attack1: { 
-            imageSrc: './imgs/Cathlyn/AttackRight.png', 
-            framesMax: 1 
-        },
-        attack1Left: { 
-            imageSrc: './imgs/Cathlyn/AttackLeft.png', 
-            framesMax: 1 
-        },
-        takeHit: { 
-            imageSrc: './imgs/Cathlyn/HitLeft.png', 
-            framesMax: 1 
-        },
-        takeHitRight: { 
-            imageSrc: './imgs/Cathlyn/HitRight.png', 
-            framesMax: 1 
-        },
-        death: { 
-            imageSrc: './imgs/Cathlyn/Right.png', 
-            framesMax: 1 
-        }
-    },
-    attackDuration: 350,
-    attackCooldown: 500,
-    hitDuration: 350
-})
 
-const player2 = new Fighter({
-    hitbox: {
-        offset: { x: 250, y: -140 }, // move the red box
-        width: 250,
-        height: 360
-    },
-    position: { x: 1300, y: 100 },
-    velocity: { x: 0, y: 0 },
-    facing: -1,
-    attackBox: {
-        offset: { 
-            left: {x: -310, y: -180 },
-            right: {x: 200, y: -180 }
+        position: { x: 0, y: 0 },
+        velocity: { x: 0, y: 0 },
+        imgSrc: './imgs/Cathlyn/Right.png',
+        framesMax: 1,
+        attackBox: {
+            offset: { 
+                left: {x: -110, y: -130 },
+                right: {x: 0, y: -130 },
+            },
+            width: 150,
+            height: 12
         },
-        width: 150,
-        height: 12
-    },
-    imgSrc: './imgs/Noah/NoahLeft.png',
-    framesMax: 1,
-    scale: 0.8,
-    offset: { x: -100, y: 160 },
-    sprites: {
-        idle: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 },
-        idleRight: { imageSrc: './imgs/Noah/NoahRight.png', framesMax: 1 },
-        run: { imageSrc: './imgs/Noah/NoahWalkLeft.png', framesMax: 1 },
-        runRight: { imageSrc: './imgs/Noah/NoahWalkRight.png', framesMax: 1 },
-        jump: { imageSrc: './imgs/Noah/NoahJumpLeft.png', framesMax: 1 },
-        jumpRight: { imageSrc: './imgs/Noah/NoahJumpRight.png', framesMax: 1 },
-        fall: { imageSrc: './imgs/Noah/NoahJumpLeft.png', framesMax: 1 },
-        fallRight: { imageSrc: './imgs/Noah/NoahJumpRight.png', framesMax: 1 },
-        attack1: { imageSrc: './imgs/Noah/NoahAttackLeft.png', framesMax: 1 },
-        attack1Right: { imageSrc: './imgs/Noah/NoahAttackRight.png', framesMax: 1 },
-        takeHit: { imageSrc: './imgs/Noah/HitLeft.png', framesMax: 1 },
-        takeHitRight: { imageSrc: './imgs/Noah/HitRight.png', framesMax: 1 },
-        death: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 }
-    },
-    attackDuration: 350,
-    attackCooldown: 550,
-    hitDuration: 350
-})
+        scale: 0.8,
+        offset: { x: 100, y: 130 },
+        sprites: {
+            idle: { imageSrc: './imgs/Cathlyn/Right.png', framesMax: 1 },
+            idleLeft: { 
+                imageSrc: './imgs/Cathlyn/Left.png', 
+                framesMax: 1
+            },
+            run: { 
+                imageSrc: './imgs/Cathlyn/WalkRight.png', 
+                framesMax: 1,
+            },
+            runLeft: { 
+                imageSrc: './imgs/Cathlyn/WalkLeft.png', 
+                framesMax: 1
+            },
+            jump: { 
+                imageSrc: './imgs/Cathlyn/JumpRight.png', 
+                framesMax: 1
+            },
+            jumpLeft: { 
+                imageSrc: './imgs/Cathlyn/JumpLeft.png', 
+                framesMax: 1
+            },
+            fall: { 
+                imageSrc: './imgs/Cathlyn/JumpRight.png', 
+                framesMax: 1
+            },
+            fallLeft: { 
+                imageSrc: './imgs/Cathlyn/JumpLeft.png', 
+                framesMax: 1
+            },
+            attack1: { 
+                imageSrc: './imgs/Cathlyn/AttackRight.png', 
+                framesMax: 1 
+            },
+            attack1Left: { 
+                imageSrc: './imgs/Cathlyn/AttackLeft.png', 
+                framesMax: 1 
+            },
+            takeHit: { 
+                imageSrc: './imgs/Cathlyn/HitLeft.png', 
+                framesMax: 1 
+            },
+            takeHitRight: { 
+                imageSrc: './imgs/Cathlyn/HitRight.png', 
+                framesMax: 1 
+            },
+            death: { 
+                imageSrc: './imgs/Cathlyn/Right.png', 
+                framesMax: 1 
+            }
+        },
+        attackDuration: 350,
+        attackCooldown: 500,
+        hitDuration: 350
+    })
 
+    player2 = new Fighter({
+        hitbox: {
+            offset: { x: 250, y: -140 }, // move the red box
+            width: 250,
+            height: 360
+        },
+        position: { x: 1300, y: 100 },
+        velocity: { x: 0, y: 0 },
+        facing: -1,
+        attackBox: {
+            offset: { 
+                left: {x: -310, y: -180 },
+                right: {x: 200, y: -180 }
+            },
+            width: 150,
+            height: 12
+        },
+        imgSrc: './imgs/Noah/NoahLeft.png',
+        framesMax: 1,
+        scale: 0.8,
+        offset: { x: -100, y: 160 },
+        sprites: {
+            idle: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 },
+            idleRight: { imageSrc: './imgs/Noah/NoahRight.png', framesMax: 1 },
+            run: { imageSrc: './imgs/Noah/NoahWalkLeft.png', framesMax: 1 },
+            runRight: { imageSrc: './imgs/Noah/NoahWalkRight.png', framesMax: 1 },
+            jump: { imageSrc: './imgs/Noah/NoahJumpLeft.png', framesMax: 1 },
+            jumpRight: { imageSrc: './imgs/Noah/NoahJumpRight.png', framesMax: 1 },
+            fall: { imageSrc: './imgs/Noah/NoahJumpLeft.png', framesMax: 1 },
+            fallRight: { imageSrc: './imgs/Noah/NoahJumpRight.png', framesMax: 1 },
+            attack1: { imageSrc: './imgs/Noah/NoahAttackLeft.png', framesMax: 1 },
+            attack1Right: { imageSrc: './imgs/Noah/NoahAttackRight.png', framesMax: 1 },
+            takeHit: { imageSrc: './imgs/Noah/HitLeft.png', framesMax: 1 },
+            takeHitRight: { imageSrc: './imgs/Noah/HitRight.png', framesMax: 1 },
+            death: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 }
+        },
+        attackDuration: 350,
+        attackCooldown: 550,
+        hitDuration: 350
+    })
+}
+
+initializePlayers()
 syncHealthUI()
 
 const keys = {
@@ -374,8 +391,72 @@ function drawControlsLegend() {
     c.restore()
 }
 
+function checkGameOver() {
+    if (player1.health <= 0 && !player1.dead) {
+        player1.dead = true
+        winner = 'Player 2'
+        showDeathScreen()
+    } else if (player2.health <= 0 && !player2.dead) {
+        player2.dead = true
+        winner = 'Player 1'
+        showDeathScreen()
+    }
+}
+
+function showDeathScreen() {
+    gameState = 'gameover'
+    
+    // Set winner title
+    deathTitle.textContent = `${winner} Wins!`
+    
+    // Set winner image - you can customize these paths
+    if (winner === 'Player 1') {
+        deathImage.src = './imgs/Cathlyn/Right.png' // Replace with your victory image
+    } else {
+        deathImage.src = './imgs/Noah/NoahRight.png' // Replace with your victory image
+    }
+    
+    // Show death screen with animation
+    deathScreen.style.display = 'flex'
+    deathScreen.style.animation = 'fadeIn 0.4s ease'
+}
+
+// Rematch
+function resetGame() {
+    // Reset game state
+    gameState = 'playing'
+    winner = null
+    
+    // Reset keys
+    keys.a.pressed = false
+    keys.d.pressed = false
+    keys.ArrowLeft.pressed = false
+    keys.ArrowRight.pressed = false
+    
+    // Reset controls legend
+    controlsLegendState.p1HasMoved = false
+    controlsLegendState.p2HasMoved = false
+    
+    // Reinitialize players
+    initializePlayers()
+    syncHealthUI()
+    
+    // Hide death screen
+    deathScreen.style.display = 'none'
+}
+
+function startGame() {
+    gameState = 'playing'
+    titleScreen.style.display = 'none'
+    resetGame()
+}
+
+// Button event listeners
+rematchButton.addEventListener('click', resetGame)
+
 function animate() {
-    window.requestAnimationFrame(animate)
+    animationId = window.requestAnimationFrame(animate)
+    
     c.fillStyle = 'black'
     c.fillRect(0, 0, stage.width, stage.height)
 
@@ -404,6 +485,11 @@ function animate() {
     player1.update()    
     player2.update()
     c.restore()
+
+    // Only process game logic if playing
+    if (gameState !== 'playing') {
+        return
+    }
 
     player1.velocity.x = 0; // stops player
     player2.velocity.x = 0;
@@ -507,6 +593,7 @@ function animate() {
     }
     if (hitP1 || hitP2) {
         syncHealthUI()
+        checkGameOver()
     }
 
     drawControlsLegend()
@@ -522,6 +609,15 @@ function normalizeKey(eventKey) {
 
 window.addEventListener('keydown', (event) =>  {
     const key = normalizeKey(event.key)
+    
+    // Handle any key on title screen
+    if (gameState === 'title') {
+        startGame()
+        return
+    }
+    
+    if (gameState !== 'playing') return
+    
     switch (key) {
         // player 1
         case 'd': 
@@ -556,7 +652,6 @@ window.addEventListener('keydown', (event) =>  {
             player2.facing = 1
             keys.ArrowRight.pressed = true;
             player2.lastKey = 'ArrowRight'
-            playFootstep()
             break;
         case 'ArrowLeft': 
             controlsLegendState.p2HasMoved = true
