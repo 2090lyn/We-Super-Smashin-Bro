@@ -65,7 +65,7 @@
 # 🚀 Live Demo
 
 Play here:
-  👉 https://2090lyn.github.io/we-super-smashin-bro/
+  👉 https://2090lyn.github.io/We-Super-Smashin-Bro/
 
 # 📸 Preview
 
