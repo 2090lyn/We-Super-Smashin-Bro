@@ -56,7 +56,7 @@ function resizeStage() {
 window.addEventListener('resize', resizeStage)
 resizeStage()
 
-const gravity = 1
+const gravity = 0.7
 window.DEBUG_HITBOXES = true
 
 const player1HealthFill = document.querySelector('#player1-health')
@@ -411,18 +411,18 @@ function animate() {
     // player1 movement
     if (!player1.isMovementLocked()) {
         if (keys.a.pressed && player1.lastKey == 'a') {
-            player1.velocity.x = -10;
+            player1.velocity.x = -5;
         } else if (keys.d.pressed && player1.lastKey == 'd') {
-            player1.velocity.x = 10;
+            player1.velocity.x = 5;
         }
     }
 
     // player2 movement
     if (!player2.isMovementLocked()) {
         if (keys.ArrowLeft.pressed && player2.lastKey == 'ArrowLeft') {
-            player2.velocity.x = -10;
+            player2.velocity.x = -5;
         } else if (keys.ArrowRight.pressed && player2.lastKey == 'ArrowRight') {
-            player2.velocity.x = 10;
+            player2.velocity.x = 5;
         }
     }
 
