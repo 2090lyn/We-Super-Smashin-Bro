@@ -10,8 +10,47 @@ let winner = null
 const titleScreen = document.getElementById('titleScreen')
 const deathScreen = document.getElementById('deathScreen')
 const rematchButton = document.getElementById('rematchButton')
+const titleButton = document.getElementById('titleButton')
 const deathTitle = document.getElementById('deathTitle')
 const deathImage = document.getElementById('deathImage')
+
+// ---------------------- BGM & Audio -----------------------
+const titleBgm = document.getElementById('titleBgm')
+const deathBgm = document.getElementById('rizzbgm')
+
+const DEFAULT_VOLUME = 0.5
+const MUSIC_MIX = 0.4  // music volume multiplier
+const SFX_MIX = 0.7    // sfx volume multiplier
+let userVolume = DEFAULT_VOLUME
+let isMuted = false
+
+function applyVolume() {
+    if (titleBgm) {
+        titleBgm.volume = Math.min(1, userVolume * MUSIC_MIX)
+        titleBgm.muted = isMuted
+    }
+    if (deathBgm) {
+        deathBgm.volume = Math.min(1, userVolume * MUSIC_MIX)
+        deathBgm.muted = isMuted
+    }
+}
+
+function playBgm(bgmElement) {
+    if (!bgmElement || isMuted) return
+    bgmElement.currentTime = 0
+    bgmElement.loop = true
+    applyVolume()
+    bgmElement.play().catch(() => {})
+}
+
+function stopBgm(bgmElement) {
+    if (!bgmElement) return
+    bgmElement.pause()
+    bgmElement.currentTime = 0
+}
+
+// Initialize volumes
+applyVolume()
 
 // ---------------------- Audio -----------------------
 const sfx = {
@@ -26,11 +65,11 @@ sfx.attack.playbackRate = 1.1
 sfx.walk.playbackRate = 1
 
 sfx.jump.playbackRate = 2
-sfx.jump.volume = 0.2
 
 function playSfx(sound) {
-    if (!sound) return
+    if (!sound || isMuted) return
     sound.currentTime = 0
+    sound.volume = Math.min(1, userVolume * SFX_MIX)
     sound.play().catch(() => {})
 }
 // ---------------------------------------------------
@@ -406,14 +445,14 @@ function checkGameOver() {
 function showDeathScreen() {
     gameState = 'gameover'
     
-    // Set winner title
-    deathTitle.textContent = `${winner} Wins!`
+    // Play death/victory music
+    playBgm(deathBgm)
     
-    // Set winner image - you can customize these paths
+    // Set winner image
     if (winner === 'Player 1') {
-        deathImage.src = './imgs/Cathlyn/Right.png' // Replace with your victory image
+        deathImage.src = './imgs/Cathlyn/Right.png'
     } else {
-        deathImage.src = './imgs/Noah/NoahRight.png' // Replace with your victory image
+        deathImage.src = './imgs/Noah/NoahRight.png'
     }
     
     // Show death screen with animation
@@ -421,8 +460,10 @@ function showDeathScreen() {
     deathScreen.style.animation = 'fadeIn 0.4s ease'
 }
 
-// Rematch
 function resetGame() {
+    // Stop death music
+    stopBgm(deathBgm)
+    
     // Reset game state
     gameState = 'playing'
     winner = null
@@ -445,14 +486,53 @@ function resetGame() {
     deathScreen.style.display = 'none'
 }
 
+function returnToTitle() {
+    // Stop death music
+    stopBgm(deathBgm)
+    
+    // Reset game state
+    gameState = 'title'
+    winner = null
+    
+    // Reset keys
+    keys.a.pressed = false
+    keys.d.pressed = false
+    keys.ArrowLeft.pressed = false
+    keys.ArrowRight.pressed = false
+    
+    // Reset controls legend
+    controlsLegendState.p1HasMoved = false
+    controlsLegendState.p2HasMoved = false
+    
+    // Reinitialize players
+    initializePlayers()
+    syncHealthUI()
+    
+    // Hide death screen and show title screen
+    deathScreen.style.display = 'none'
+    titleScreen.style.display = 'flex'
+    titleScreen.style.animation = 'fadeIn 0.4s ease'
+    
+    // Play title music
+    playBgm(titleBgm)
+}
+
 function startGame() {
-    gameState = 'playing'
-    titleScreen.style.display = 'none'
-    resetGame()
+    // Stop title music
+    stopBgm(titleBgm)
+    
+    setTimeout(() => {
+        gameState = 'playing'
+        titleScreen.style.display = 'none'
+        // Reset animation for next time
+        titleScreen.style.animation = 'fadeIn 0.4s ease'
+        resetGame()
+    }, 500) // Match the fadeOut duration
 }
 
 // Button event listeners
 rematchButton.addEventListener('click', resetGame)
+titleButton.addEventListener('click', returnToTitle)
 
 function animate() {
     animationId = window.requestAnimationFrame(animate)
@@ -612,6 +692,10 @@ window.addEventListener('keydown', (event) =>  {
     
     // Handle any key on title screen
     if (gameState === 'title') {
+        // Try to play title music if not already playing
+        if (titleBgm && titleBgm.paused) {
+            playBgm(titleBgm)
+        }
         startGame()
         return
     }
@@ -699,3 +783,22 @@ window.addEventListener('keyup', (event) => {
             break;
     }
 })
+
+// Auto-play title music when page loads
+window.addEventListener('load', () => {
+    // Try to play immediately
+    playBgm(titleBgm)
+})
+
+// Also try to play on first user interaction
+document.addEventListener('click', function playOnClick() {
+    if (gameState === 'title' && titleBgm && titleBgm.paused) {
+        playBgm(titleBgm)
+    }
+}, { once: true })
+
+document.addEventListener('keydown', function playOnKeydown() {
+    if (gameState === 'title' && titleBgm && titleBgm.paused) {
+        playBgm(titleBgm)
+    }
+}, { once: true })

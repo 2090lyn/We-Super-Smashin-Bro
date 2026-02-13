@@ -238,7 +238,7 @@ canvas {
 .title-logo {
     position: absolute;
     top: 40px;
-    right: 70px;
+    right: 40px;
     display: flex;
     flex-direction: column;
     align-items: flex-end;
@@ -260,8 +260,7 @@ canvas {
 
 .press-enter {
     position: absolute;
-    bottom: 20px;
-    font-family: "Cute Font", sans-serif;
+    bottom: 60px;
     font-size: clamp(18px, 3vw, 28px);
     font-weight: 600;
     color: rgba(255, 255, 255, 0.9);
@@ -312,6 +311,13 @@ canvas {
     margin-top: -16px;
 }
 
+.death-buttons {
+    display: flex;
+    gap: 16px;
+    flex-wrap: wrap;
+    justify-content: center;
+}
+
 /* Golden Button */
 .golden-button {
     position: relative;
@@ -332,6 +338,30 @@ canvas {
     transition: all 0.2s ease;
     text-transform: uppercase;
     letter-spacing: 0.05em;
+}
+
+.secondary-button {
+    background: linear-gradient(135deg, #888 0%, #aaa 50%, #888 100%);
+    box-shadow: 
+        0 10px 30px rgba(0, 0, 0, 0.3),
+        inset 0 2px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.secondary-button:hover {
+    transform: translateY(-2px);
+    box-shadow: 
+        0 14px 40px rgba(0, 0, 0, 0.4),
+        inset 0 2px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.2);
+}
+
+.secondary-button:active {
+    transform: translateY(0);
+    box-shadow: 
+        0 6px 20px rgba(0, 0, 0, 0.2),
+        inset 0 2px 0 rgba(255, 255, 255, 0.3),
+        inset 0 -2px 0 rgba(0, 0, 0, 0.2);
 }
 
 .golden-button:hover {
@@ -378,6 +408,15 @@ canvas {
     }
     to {
         opacity: 1;
+    }
+}
+
+@keyframes fadeOut {
+    from {
+        opacity: 1;
+    }
+    to {
+        opacity: 0;
     }
 }
 
