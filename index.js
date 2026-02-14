@@ -8,11 +8,33 @@ let winner = null
 
 // ---------------------- Screen Elements -----------------------
 const titleScreen = document.getElementById('titleScreen')
+const slideshowScreen = document.getElementById('slideshowScreen')
+const slideshowImage = document.getElementById('slideshowImage')
 const deathScreen = document.getElementById('deathScreen')
 const rematchButton = document.getElementById('rematchButton')
 const titleButton = document.getElementById('titleButton')
 const deathTitle = document.getElementById('deathTitle')
 const deathImage = document.getElementById('deathImage')
+
+// ---------------------- Slideshow Configuration -----------------------
+// Add your slideshow images here for each winner
+const slideshowImages = {
+    'Player 1': [
+        './imgs/Cathlyn/rose.gif',  // First image (zoomed in)
+        './imgs/Noah/love.gif'      // Second image (zooms out)
+    ],
+    'Player 2': [
+        './imgs/Noah/rose.gif',     // First image (zoomed in)
+        './imgs/Cathlyn/love.gif'   // Second image (zooms out)
+    ]
+}
+
+// Slideshow timing configuration (in milliseconds)
+const slideshowTiming = {
+    firstImageDuration: 6000,   // How long to show the first zoomed-in image
+    secondImageDuration: 5000,  // How long to show the second zoomed-out image
+    zoomOutDuration: 1000       // How long the zoom-out animation takes
+}
 
 // ---------------------- BGM & Audio -----------------------
 const titleBgm = document.getElementById('titleBgm')
@@ -20,7 +42,7 @@ const deathBgm = document.getElementById('rizzbgm')
 
 const DEFAULT_VOLUME = 0.5
 const MUSIC_MIX = 0.4  // music volume multiplier
-const SFX_MIX = 0.4    // sfx volume multiplier
+const SFX_MIX = 0.7    // sfx volume multiplier
 let userVolume = DEFAULT_VOLUME
 let isMuted = false
 
@@ -249,7 +271,7 @@ function initializePlayers() {
             death: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 }
         },
         attackDuration: 350,
-        attackCooldown: 550,
+        attackCooldown: 525,
         hitDuration: 350
     })
 }
@@ -434,26 +456,70 @@ function checkGameOver() {
     if (player1.health <= 0 && !player1.dead) {
         player1.dead = true
         winner = 'Player 2'
-        showDeathScreen()
+        playSlideshow()
     } else if (player2.health <= 0 && !player2.dead) {
         player2.dead = true
         winner = 'Player 1'
-        showDeathScreen()
+        playSlideshow()
     }
 }
 
-function showDeathScreen() {
+function playSlideshow() {
     gameState = 'gameover'
     
-    // Play death/victory music
+    // Play death/victory music immediately
     playBgm(deathBgm)
     
-    // Set winner image
-    if (winner === 'Player 1') {
-        deathImage.src = './imgs/Cathlyn/rose.png'
-    } else {
-        deathImage.src = './imgs/Noah/NoahRight.png'
+    // Get slideshow images for the winner
+    const images = slideshowImages[winner] || []
+    
+    console.log('Starting slideshow for', winner, 'with images:', images)
+    
+    if (images.length === 0) {
+        console.log('No slideshow images, going straight to death screen')
+        showDeathScreen()
+        return
     }
+    
+    // Show slideshow screen with black background
+    slideshowScreen.style.display = 'flex'
+    slideshowScreen.style.backgroundColor = '#000'
+    slideshowScreen.style.animation = 'fadeIn 0.4s ease'
+    
+    // FIRST IMAGE - Zoomed in
+    console.log('Showing first image (zoomed in):', images[0])
+    slideshowImage.src = images[0]
+    slideshowImage.className = 'slideshow-image zoomed-in'
+    
+    // After first image duration, show second image with zoom out
+    setTimeout(() => {
+        if (images.length > 1) {
+            console.log('Showing second image (zooming out):', images[1])
+            slideshowImage.src = images[1]
+            slideshowImage.className = 'slideshow-image zoom-out'
+            
+            // After second image duration, show death screen
+            setTimeout(() => {
+                console.log('Slideshow done, showing death screen')
+                slideshowScreen.style.display = 'none'
+                showDeathScreen()
+            }, slideshowTiming.secondImageDuration)
+        } else {
+            // Only one image, go straight to death screen
+            slideshowScreen.style.display = 'none'
+            showDeathScreen()
+        }
+    }, slideshowTiming.firstImageDuration)
+}
+
+function showDeathScreen() {
+    console.log('Showing death screen for', winner)
+    
+    // Set winner image (use last slideshow image)
+    const images = slideshowImages[winner] || []
+    const finalImage = images[images.length - 1] || (winner === 'Player 1' ? './imgs/Cathlyn/rose.gif' : './imgs/Noah/rose.gif')
+    console.log('Setting final image:', finalImage)
+    deathImage.src = finalImage
     
     // Show death screen with animation
     deathScreen.style.display = 'flex'

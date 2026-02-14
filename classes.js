@@ -289,7 +289,7 @@ class Sprite {
     }
 
     takeHit() {
-        this.health -= 5
+        this.health -= 10
 
         if (!this.sprites) return
         if (this.health <= 0) {
