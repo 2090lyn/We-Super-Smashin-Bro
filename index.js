@@ -31,8 +31,9 @@ const slideshowImages = {
 
 // Slideshow timing configuration (in milliseconds)
 const slideshowTiming = {
-    firstImageDuration: 6000,   // How long to show the first zoomed-in image
-    secondImageDuration: 5000,  // How long to show the second zoomed-out image
+    suspensePause: 6000,        // Pause on game screen before slideshow (adds suspense)
+    firstImageDuration: 5500,   // How long to show the first zoomed-in image
+    secondImageDuration: 3000,  // How long to show the second zoomed-out image
     zoomOutDuration: 1000       // How long the zoom-out animation takes
 }
 
@@ -180,54 +181,19 @@ function initializePlayers() {
         offset: { x: 100, y: 130 },
         sprites: {
             idle: { imageSrc: './imgs/Cathlyn/Right.png', framesMax: 1 },
-            idleLeft: { 
-                imageSrc: './imgs/Cathlyn/Left.png', 
-                framesMax: 1
-            },
-            run: { 
-                imageSrc: './imgs/Cathlyn/WalkRight.png', 
-                framesMax: 1,
-            },
-            runLeft: { 
-                imageSrc: './imgs/Cathlyn/WalkLeft.png', 
-                framesMax: 1
-            },
-            jump: { 
-                imageSrc: './imgs/Cathlyn/JumpRight.png', 
-                framesMax: 1
-            },
-            jumpLeft: { 
-                imageSrc: './imgs/Cathlyn/JumpLeft.png', 
-                framesMax: 1
-            },
-            fall: { 
-                imageSrc: './imgs/Cathlyn/JumpRight.png', 
-                framesMax: 1
-            },
-            fallLeft: { 
-                imageSrc: './imgs/Cathlyn/JumpLeft.png', 
-                framesMax: 1
-            },
-            attack1: { 
-                imageSrc: './imgs/Cathlyn/AttackRight.png', 
-                framesMax: 1 
-            },
-            attack1Left: { 
-                imageSrc: './imgs/Cathlyn/AttackLeft.png', 
-                framesMax: 1 
-            },
-            takeHit: { 
-                imageSrc: './imgs/Cathlyn/HitLeft.png', 
-                framesMax: 1 
-            },
-            takeHitRight: { 
-                imageSrc: './imgs/Cathlyn/HitRight.png', 
-                framesMax: 1 
-            },
-            death: { 
-                imageSrc: './imgs/Cathlyn/Right.png', 
-                framesMax: 1 
-            }
+            idleLeft: { imageSrc: './imgs/Cathlyn/Left.png', framesMax: 1 },
+            run: { imageSrc: './imgs/Cathlyn/WalkRight.png', framesMax: 1 },
+            runLeft: { imageSrc: './imgs/Cathlyn/WalkLeft.png', framesMax: 1 },
+            jump: { imageSrc: './imgs/Cathlyn/JumpRight.png', framesMax: 1 },
+            jumpLeft: { imageSrc: './imgs/Cathlyn/JumpLeft.png', framesMax: 1 },
+            fall: { imageSrc: './imgs/Cathlyn/JumpRight.png', framesMax: 1 },
+            fallLeft: { imageSrc: './imgs/Cathlyn/JumpLeft.png', framesMax: 1 },
+            attack1: { imageSrc: './imgs/Cathlyn/AttackRight.png', framesMax: 1 },
+            attack1Left: { imageSrc: './imgs/Cathlyn/AttackLeft.png', framesMax: 1 },
+            takeHit: { imageSrc: './imgs/Cathlyn/HitLeft.png', framesMax: 1 },
+            takeHitRight: { imageSrc: './imgs/Cathlyn/HitRight.png', framesMax: 1 },
+            death: { imageSrc: './imgs/Cathlyn/deathLeft.png', framesMax: 1 },
+            deathRight: { imageSrc: './imgs/Cathlyn/deathRight.png', framesMax: 1 }
         },
         attackDuration: 350,
         attackCooldown: 525,
@@ -268,7 +234,8 @@ function initializePlayers() {
             attack1Right: { imageSrc: './imgs/Noah/NoahAttackRight.png', framesMax: 1 },
             takeHit: { imageSrc: './imgs/Noah/HitLeft.png', framesMax: 1 },
             takeHitRight: { imageSrc: './imgs/Noah/HitRight.png', framesMax: 1 },
-            death: { imageSrc: './imgs/Noah/NoahLeft.png', framesMax: 1 }
+            death: { imageSrc: './imgs/Noah/deathLeft.png', framesMax: 1 },
+            deathRight: { imageSrc: './imgs/Noah/deathRight.png', framesMax: 1 }
         },
         attackDuration: 350,
         attackCooldown: 525,
@@ -474,6 +441,7 @@ function playSlideshow() {
     const images = slideshowImages[winner] || []
     
     console.log('Starting slideshow for', winner, 'with images:', images)
+    console.log('Suspense pause:', slideshowTiming.suspensePause, 'ms')
     
     if (images.length === 0) {
         console.log('No slideshow images, going straight to death screen')
@@ -481,35 +449,47 @@ function playSlideshow() {
         return
     }
     
-    // Show slideshow screen with black background
-    slideshowScreen.style.display = 'flex'
-    slideshowScreen.style.backgroundColor = '#000'
-    slideshowScreen.style.animation = 'fadeIn 0.4s ease'
-    
-    // FIRST IMAGE - Zoomed in
-    console.log('Showing first image (zoomed in):', images[0])
-    slideshowImage.src = images[0]
-    slideshowImage.className = 'slideshow-image zoomed-in'
-    
-    // After first image duration, show second image with zoom out
+    // SUSPENSE PAUSE - Game screen stays frozen while music plays
+    // After the pause, transition to slideshow
     setTimeout(() => {
-        if (images.length > 1) {
-            console.log('Showing second image (zooming out):', images[1])
-            slideshowImage.src = images[1]
-            slideshowImage.className = 'slideshow-image zoom-out'
-            
-            // After second image duration, show death screen
-            setTimeout(() => {
-                console.log('Slideshow done, showing death screen')
-                slideshowScreen.style.display = 'none'
-                showDeathScreen()
-            }, slideshowTiming.secondImageDuration)
-        } else {
-            // Only one image, go straight to death screen
-            slideshowScreen.style.display = 'none'
-            showDeathScreen()
-        }
-    }, slideshowTiming.firstImageDuration)
+        console.log('Suspense pause over, showing slideshow')
+        
+        // Show slideshow screen with black background
+        slideshowScreen.style.display = 'flex'
+        slideshowScreen.style.backgroundColor = '#000'
+        slideshowScreen.style.animation = 'fadeIn 0.4s ease'
+        
+        // FIRST IMAGE - Zoomed in
+        console.log('Showing first image (zoomed in):', images[0])
+        slideshowImage.src = images[0]
+        slideshowImage.className = 'slideshow-image zoomed-in'
+        
+        // After first image duration, show second image with zoom out
+        setTimeout(() => {
+            if (images.length > 1) {
+                console.log('Showing second image (zooming out):', images[1])
+                slideshowImage.src = images[1]
+                slideshowImage.className = 'slideshow-image zoom-out'
+                
+                // After second image duration, fade out then show death screen
+                setTimeout(() => {                    
+                    setTimeout(() => {
+                        slideshowScreen.style.display = 'none'
+                        slideshowScreen.style.animation = '' // Reset animation
+                        showDeathScreen()
+                    }, 600) // Match fadeOut duration
+                }, slideshowTiming.secondImageDuration)
+            } else {
+                // Only one image, fade out then go to death screen 
+                setTimeout(() => {
+                    slideshowScreen.style.display = 'none'
+                    slideshowScreen.style.animation = ''
+                    showDeathScreen()
+                }, 600)
+            }
+        }, slideshowTiming.firstImageDuration)
+        
+    }, slideshowTiming.suspensePause) // Delay the slideshow start for suspense
 }
 
 function showDeathScreen() {
